@@ -1,14 +1,14 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="turning-point-detection",
+    name="tp_analyzer",
     version="0.0.1",
     author="Nick James, Jarrah Lacko and Max Menzies",
     author_email="jarrah@lacko.com.au",
     description="A package to identify turning points in time series data",
     #url="github.com url",
     packages=find_packages(),
-    install_requires=["numpy", "scipy"],
+    install_requires=["sortedcontainers", "numpy", "scipy"],
     extras_require={"display": ["matplotlib"]},
     python_requires=">=3",
     #license="BSD License",
