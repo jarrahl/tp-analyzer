@@ -7,7 +7,8 @@ setup(
     author_email="jarrah@lacko.com.au",
     description="A package to identify turning points in time series data",
     url="https://github.com/jarrahl/tp-analyzer",
-    packages=find_packages(),
+    packages=find_packages(exclude=["tests*"]),
+    package_data={"tp_analyzer": ["data/*.csv"]},
     install_requires=["sortedcontainers", "numpy", "scipy"],
     extras_require={"display": ["matplotlib"]},
     python_requires=">=3",
@@ -24,6 +25,6 @@ setup(
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: MIT License",
     ],
-    long_description="",
+    long_description=open("README.md").read(),
 )
 
