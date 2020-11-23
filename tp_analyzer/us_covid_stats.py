@@ -16,23 +16,37 @@ SG_POLY_ORDER = 2
 # Hard-coded output files, will parameretize these in future.
 TP_OUTPUT_CSV = "turning_points.csv"
 DISTANCE_MATRIX_OUTPUT_CSV = "distance_matrix.csv"
+SURGE_REPORT_OUTPUT_TXT = "surge_report.txt"
 PLOT_DIR = "state_plots"
 PKG_DATA_FILE = "data/us-states.csv"
 
-def process_data(file, states=[], plot_dir="", output_csv=""):
+def process_data(file, states=[], plot_dir="", output_csv="", pad_zeroes=True):
   # Assumptions: once a state starts reporting, it reports exactly once every
   # following day, and rows are ordered by ascending date. We expect a field
   # called 'state' and a field called 'cases', which represents the cumulative
   # number of cases for that state/date.
-  cumulative = defaultdict(lambda: [0])
-  deltas = defaultdict(lambda: [0])
+  # If 'pad_zeroes' is true, insert a sequence of '0's before each state's 
+  # first reported day, so that every sequence is the same length.
+  cumulative = {}
   with open(file) as csvfile:
     reader = DictReader(csvfile)
+    days = 0
+    prevdate = None
+    line = 0
     for row in reader:
-      if ('state' not in row) or ('cases' not in row):
-        print("Error: data must contain 'state' and 'cases' fields.")
+      line += 1
+      if ('date' not in row) or ('state' not in row) or ('cases' not in row):
+        print("Error (line %d): data must contain 'date', 'state' and 'cases' fields." % (line))
         return
+      if row['state'] not in cumulative:
+        cumulative[row['state']] = [0] * (days if pad_zeroes else 0)
       cumulative[row['state']].append(int(row['cases']))
+      if row['date'] != prevdate:
+        if prevdate and row['date'] < prevdate:
+          print("Error (line %d): dates must be in ascending order" % (line)) 
+          return
+        days += 1
+        prevdate = row['date']
   deltas = dict([(x, [y[i] - y[i-1] for i in range(1, len(y))])
                  for (x, y) in cumulative.items()])
   tps = {}
@@ -79,6 +93,20 @@ def generate_distance_matrix(tps, out=""):
   f_out.close()
   print("Wrote %d lines to %s" % (nlines, out))
 
+def generate_surge_report(tps, out=""):
+  # tps is a dictionary keyed by state name, containing lists of turning
+  # point indices.
+  # out is a file name to write to. Empty string = print to stdout.
+  states_by_tps_len = defaultdict(lambda: [])
+  f_out = open(out, "w") if out else sys.stdout
+  for (a, b) in tps.items():
+    states_by_tps_len[len(b)].append(a)
+  # special case tps_len=0/1
+  for tps_len in sorted(states_by_tps_len.keys()):
+    print("%s surge %d:" % ("Over" if (tps_len % 2)  else "In", int(tps_len/2)))
+    print("\n".join(states_by_tps_len[tps_len]) + "\n")
+
+
 # Default usage: python -m tp_analyzer.us_covid_stats [data_file] [states]
 # Produces distance_matrix.csv with (state, state, distance) triples
 # Produces turning_points.csv with (state, turning_points...)
@@ -104,3 +132,4 @@ if __name__ == "__main__":
     exit()  
   tps = process_data(data_file, states, PLOT_DIR, TP_OUTPUT_CSV)
   generate_distance_matrix(tps, out=DISTANCE_MATRIX_OUTPUT_CSV)
+  generate_surge_report(tps, out=SURGE_REPORT_OUTPUT_TXT)
