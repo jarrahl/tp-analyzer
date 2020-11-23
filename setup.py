@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="tp_analyzer",
-    version="0.0.2",
+    version="0.0.4",
     author="Nick James, Jarrah Lacko and Max Menzies",
     author_email="jarrah@lacko.com.au",
     description="A package to identify turning points in time series data",

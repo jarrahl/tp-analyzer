@@ -103,8 +103,9 @@ def generate_surge_report(tps, out=""):
     states_by_tps_len[len(b)].append(a)
   # special case tps_len=0/1
   for tps_len in sorted(states_by_tps_len.keys()):
-    print("%s surge %d:" % ("Over" if (tps_len % 2)  else "In", int(tps_len/2)))
-    print("\n".join(states_by_tps_len[tps_len]) + "\n")
+    f_out.write(
+      "%s surge %d:\n" % ("Over" if (tps_len % 2)  else "In", int(tps_len/2)))
+    f_out.write("\n".join(states_by_tps_len[tps_len]) + "\n\n")
 
 
 # Default usage: python -m tp_analyzer.us_covid_stats [data_file] [states]
